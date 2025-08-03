@@ -80,9 +80,9 @@ jobs:
         run: |
           terraform plan -destroy -out=destroy-plan \
             -var="environment=${{ github.event.inputs.environment }}" \
-            -var="weather_api_key=dummy-key-for-destroy"
+            -var="weather_api_key=${{ secrets.WEATHER_API_KEY }}"
         env:
-          TF_VAR_weather_api_key: dummy-key-for-destroy
+          TF_VAR_weather_api_key: ${{ secrets.WEATHER_API_KEY }}
           TF_VAR_environment: ${{ github.event.inputs.environment }}
 
       - name: Terraform Destroy
