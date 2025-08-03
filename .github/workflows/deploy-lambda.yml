@@ -25,6 +25,7 @@ on:
 env:
   AWS_REGION: ap-southeast-2
   PYTHON_VERSION: '3.13'
+  environment: dev
 
 jobs:
   build-and-deploy:
