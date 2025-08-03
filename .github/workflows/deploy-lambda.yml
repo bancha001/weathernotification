@@ -99,13 +99,13 @@ jobs:
           FUNCTION_NAME=""
           case "${{ matrix.function }}" in
             "weather-fetcher")
-              FUNCTION_NAME="weather-fetcher"
+              FUNCTION_NAME="serverless-weather-notification-system-${{github.job.environment}}-weather-fetcher"
               ;;
             "weather-processor")
-              FUNCTION_NAME="weather-processor"
+              FUNCTION_NAME="serverless-weather-notification-system-${{github.job.environment}}-weather-processor"
               ;;
             "authorizer")
-              FUNCTION_NAME="weather-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-${{github.job.environment}}-weather-authorizer"
               ;;
           esac
 
@@ -128,13 +128,13 @@ jobs:
           FUNCTION_NAME=""
           case "${{ matrix.function }}" in
             "weather-fetcher")
-              FUNCTION_NAME="weather-fetcher"
+              FUNCTION_NAME="serverless-weather-notification-system-${{github.job.environment}}-weather-fetcher"
               ;;
             "weather-processor")
-              FUNCTION_NAME="weather-processor"
+              FUNCTION_NAME="serverless-weather-notification-system-${{github.job.environment}}-weather-processor"
               ;;
             "authorizer")
-              FUNCTION_NAME="weather-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-${{github.job.environment}}-weather-authorizer"
               ;;
           esac
 
