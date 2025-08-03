@@ -112,15 +112,10 @@ jobs:
           echo "Deploying function: $FUNCTION_NAME"
 
           # Check if function exists
-          if aws lambda get-function --function-name $FUNCTION_NAME >/dev/null 2>&1; then
-            echo "Updating existing function..."
-            aws lambda update-function-code \
-              --function-name $FUNCTION_NAME \
-              --zip-file fileb://lambda/${{ matrix.function }}/${{ matrix.function }}.zip
-          else
-            echo "Function does not exist. Please deploy infrastructure first."
-            exit 1
-          fi
+          echo "Updating existing function..."
+          aws lambda update-function-code \
+            --function-name $FUNCTION_NAME \
+            --zip-file fileb://src/lambda/${{ matrix.function }}/${{ matrix.function }}.zip
 
       - name: Wait for function update to complete
         if: steps.should_deploy.outputs.deploy == 'true'
