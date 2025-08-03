@@ -45,16 +45,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: ./infrastructure
-        run: |
-          terraform init \
-            -backend-config="bucket=$TF_STATE_BUCKET" \
-            -backend-config="key=weather-app/dev/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="encrypt=true" \
-            -backend-config="use_lockfile=true"
-        env:
-          TF_STATE_BUCKET: "weather-terraform-state-bucket"
-          TF_LOCK_TABLE: "terraform-state-lock"
+        run: terraform init -backend=false
 
       - name: Terraform Validate
         working-directory: ./infrastructure
