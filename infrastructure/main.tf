@@ -235,11 +235,11 @@ resource "aws_secretsmanager_secret_version" "weather_api_key" {
 ###########################################
 
 resource "aws_sqs_queue" "weather_queue" {
-  name                      = "${local.name_prefix}-processing-queue"
-  delay_seconds             = 0
-  max_message_size          = 262144
-  message_retention_seconds = 1209600  # 14 days
-  receive_wait_time_seconds = 10       # Long polling
+  name                       = "${local.name_prefix}-processing-queue"
+  delay_seconds              = 0
+  max_message_size           = 262144
+  message_retention_seconds  = 1209600 # 14 days
+  receive_wait_time_seconds  = 10      # Long polling
   visibility_timeout_seconds = var.sqs_visibility_timeout
 
   redrive_policy = jsonencode({
@@ -432,13 +432,13 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
 resource "aws_lambda_function" "weather_functions" {
   for_each = local.lambda_functions
 
-  filename         = "${path.module}/placeholder.zip"
-  function_name    = each.value.name
-  role            = aws_iam_role.lambda_execution_role.arn
-  handler         = each.value.handler
-  runtime         = each.value.runtime
-  timeout         = each.value.timeout
-  memory_size     = each.value.memory_size
+  filename      = "${path.module}/placeholder.zip"
+  function_name = each.value.name
+  role          = aws_iam_role.lambda_execution_role.arn
+  handler       = each.value.handler
+  runtime       = each.value.runtime
+  timeout       = each.value.timeout
+  memory_size   = each.value.memory_size
 
   environment {
     variables = merge(
@@ -449,8 +449,8 @@ resource "aws_lambda_function" "weather_functions" {
       },
       each.key == "weather_fetcher" ? {
         WEATHER_API_SECRET_NAME = aws_secretsmanager_secret.weather_api_key.name
-        SQS_QUEUE_URL          = aws_sqs_queue.weather_queue.id
-        S3_BUCKET_NAME         = aws_s3_bucket.weather_bucket.bucket
+        SQS_QUEUE_URL           = aws_sqs_queue.weather_queue.id
+        S3_BUCKET_NAME          = aws_s3_bucket.weather_bucket.bucket
       } : {},
       each.key == "weather_processor" ? {
         S3_BUCKET_NAME = aws_s3_bucket.weather_bucket.bucket
@@ -484,7 +484,7 @@ data "archive_file" "placeholder" {
   output_path = "${path.module}/placeholder.zip"
 
   source {
-    content = <<EOF
+    content  = <<EOF
 def lambda_handler(event, context):
     return {
         'statusCode': 200,
@@ -527,12 +527,12 @@ resource "aws_api_gateway_rest_api" "weather_api" {
 
 # Custom authorizer
 resource "aws_api_gateway_authorizer" "weather_authorizer" {
-  name                   = "${local.name_prefix}-authorizer"
-  rest_api_id           = aws_api_gateway_rest_api.weather_api.id
-  authorizer_uri        = aws_lambda_function.weather_functions["authorizer"].invoke_arn
-  authorizer_credentials = aws_iam_role.api_gateway_invocation_role.arn
-  type                  = "REQUEST"
-  identity_source       = "method.request.header.Authorization"
+  name                             = "${local.name_prefix}-authorizer"
+  rest_api_id                      = aws_api_gateway_rest_api.weather_api.id
+  authorizer_uri                   = aws_lambda_function.weather_functions["authorizer"].invoke_arn
+  authorizer_credentials           = aws_iam_role.api_gateway_invocation_role.arn
+  type                             = "REQUEST"
+  identity_source                  = "method.request.header.Authorization"
   authorizer_result_ttl_in_seconds = 300
 }
 
@@ -569,8 +569,8 @@ resource "aws_api_gateway_integration" "weather_post_integration" {
   http_method = aws_api_gateway_method.weather_post.http_method
 
   integration_http_method = "POST"
-  type                   = "AWS_PROXY"
-  uri                    = aws_lambda_function.weather_functions["weather_fetcher"].invoke_arn
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.weather_functions["weather_fetcher"].invoke_arn
 }
 
 # CORS integration
