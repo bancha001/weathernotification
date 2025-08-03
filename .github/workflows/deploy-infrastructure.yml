@@ -1,15 +1,6 @@
 name: Deploy AWS Weather Infrastructure
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'infrastructure/**'
-      - '.github/workflows/deploy-infrastructure.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'infrastructure/**'
   workflow_dispatch:
     inputs:
       environment:
