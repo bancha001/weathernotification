@@ -46,7 +46,7 @@ jobs:
 
           # Check if function files changed (for push events)
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            if git diff --name-only HEAD^ HEAD | grep -q "lambda/$FUNCTION_NAME/"; then
+            if git diff --name-only HEAD^ HEAD | grep -q "src/lambda/$FUNCTION_NAME/"; then
               echo "deploy=true" >> $GITHUB_OUTPUT
             elif [[ "$FUNCTIONS_INPUT" == "all" ]]; then
               echo "deploy=true" >> $GITHUB_OUTPUT
@@ -72,7 +72,7 @@ jobs:
       - name: Install dependencies and package function
         if: steps.should_deploy.outputs.deploy == 'true'
         run: |
-          cd lambda/${{ matrix.function }}
+          cd src/lambda/${{ matrix.function }}
 
           # Create a clean directory for packaging
           mkdir -p package
