@@ -27,9 +27,8 @@ def lambda_handler(event, context):
         api_key = response['SecretString']
 
         # Extract city name and country code from the input event and form query parameters
-        body = event.get('body', {}) or {}
+        body = json.loads(event.get('body', '{}'))
         city_name = body.get('city_name')
-
         country_code = body.get('country_code')
         city = f"{city_name},{country_code}"
         query_params = {'q': city, 'appid': api_key}
