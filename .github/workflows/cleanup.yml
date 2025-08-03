@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.inputs.confirm_destroy == 'DESTROY'
     environment:
-      name: ${{ github.event.inputs.environment }}-cleanup
+      name: ${{ github.event.inputs.environment }}
       url: https://console.aws.amazon.com/
 
     steps:
