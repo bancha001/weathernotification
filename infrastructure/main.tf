@@ -483,11 +483,13 @@ resource "aws_lambda_function" "weather_functions" {
         ENVIRONMENT     = var.environment
         PROJECT_NAME    = var.project_name
         AWS_REGION_NAME = data.aws_region.current.name
+        LOG_LEVEL       = "INFO"
       },
       each.key == "weather_fetcher" ? {
         WEATHER_API_SECRET_NAME = aws_secretsmanager_secret.weather_api_key.name
         SQS_QUEUE_URL           = aws_sqs_queue.weather_queue.id
         S3_BUCKET_NAME          = aws_s3_bucket.weather_bucket.bucket
+        WEATHER_API_URL         = "https://api.openweathermap.org/data/2.5/weather"
       } : {},
       each.key == "weather_processor" ? {
         S3_BUCKET_NAME = aws_s3_bucket.weather_bucket.bucket
