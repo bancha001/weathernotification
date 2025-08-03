@@ -7,8 +7,9 @@ def lambda_handler(event, context):
     """
 
     # Get the authorization token from the event
-    token = event.get('authorizationToken', '')
+    token = event.get('headers', {}).get('Authorization')
     method_arn = event.get('methodArn', '')
+    print(f"Authorization header: {token}")
 
     # Simple token validation (replace with your actual auth logic)
     # In production, you might validate JWT tokens, API keys, etc.
