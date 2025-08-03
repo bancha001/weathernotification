@@ -16,12 +16,11 @@ on:
 env:
   AWS_REGION: ap-southeast-2
   PYTHON_VERSION: '3.13'
-  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  environment: dev
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: dev
     strategy:
       matrix:
         function: [weather-fetcher, weather-processor, authorizer]
