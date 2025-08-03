@@ -397,6 +397,38 @@ resource "aws_iam_role" "api_gateway_invocation_role" {
   tags = local.common_tags
 }
 
+# IAM role for API Gateway CloudWatch Logs
+resource "aws_iam_role" "api_gateway_cloudwatch_logs" {
+  name = "${local.name_prefix}-apig-logs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+# Attach the CloudWatch Logs policy to the role
+resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_logs" {
+  role       = aws_iam_role.api_gateway_cloudwatch_logs.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+# Set the CloudWatch Logs role ARN in API Gateway account settings
+resource "aws_api_gateway_account" "this" {
+  cloudwatch_role_arn = aws_iam_role.api_gateway_cloudwatch_logs.arn
+}
+
+
 resource "aws_iam_role_policy" "api_gateway_invocation_policy" {
   name = "${local.name_prefix}-api-gateway-invocation-policy"
   role = aws_iam_role.api_gateway_invocation_role.id
@@ -674,6 +706,7 @@ resource "aws_api_gateway_stage" "weather_stage" {
 
   # Enable logging and tracing
   xray_tracing_enabled = true
+  depends_on = [aws_api_gateway_account.this]
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gateway_logs.arn
