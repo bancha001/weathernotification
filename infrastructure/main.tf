@@ -178,6 +178,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "weather_bucket_lifecycle" {
     id     = "weather_data_lifecycle"
     status = "Enabled"
 
+    # Add filter to specify which objects this rule applies to
+    filter {
+      prefix = "" # Empty prefix means all objects in the bucket
+    }
+
     # Transition to IA after 30 days
     transition {
       days          = 30
