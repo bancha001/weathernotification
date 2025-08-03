@@ -53,7 +53,7 @@ jobs:
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
         env:
-          TF_STATE_BUCKET: "your-terraform-state-bucket"
+          TF_STATE_BUCKET: "weather-terraform-state-bucket"
           TF_LOCK_TABLE: "terraform-state-lock"
 
       - name: Terraform Validate
