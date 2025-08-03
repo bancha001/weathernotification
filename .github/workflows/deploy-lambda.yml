@@ -105,7 +105,7 @@ jobs:
               FUNCTION_NAME="serverless-weather-notification-system-dev-weather-processor"
               ;;
             "authorizer")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
               ;;
           esac
 
@@ -129,7 +129,7 @@ jobs:
               FUNCTION_NAME="serverless-weather-notification-system-dev-weather-processor"
               ;;
             "authorizer")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
               ;;
           esac
 
@@ -147,7 +147,7 @@ jobs:
               TEST_PAYLOAD='{"body": "{\"location\":\"London\"}"}'
               ;;
             "authorizer")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
               TEST_PAYLOAD='{"authorizationToken":"Bearer valid-api-key-123","methodArn":"arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request"}'
               ;;
           esac
