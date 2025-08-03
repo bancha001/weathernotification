@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'lambda/**'
+      - 'src/lambda/**'
       - '.github/workflows/deploy-lambda.yml'
   workflow_dispatch:
     inputs:
@@ -14,8 +14,8 @@ on:
         default: 'all'
 
 env:
-  AWS_REGION: us-east-1
-  PYTHON_VERSION: '3.9'
+  AWS_REGION: ap-southeast-2
+  PYTHON_VERSION: '3.13'
 
 jobs:
   build-and-deploy:
