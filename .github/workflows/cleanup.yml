@@ -7,15 +7,15 @@ on:
         description: 'Type "DESTROY" to confirm resource deletion'
         required: true
         type: string
-    environment:
-      description: 'Environment to destroy'
-      required: true
-      default: 'dev'
-      type: choice
-      options:
-        - dev
-        - staging
-        - prod
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 env:
   AWS_REGION: ap-southeast-2
 
