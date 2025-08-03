@@ -16,6 +16,7 @@ on:
           - dev
           - staging
           - prod
+
 env:
   AWS_REGION: ap-southeast-2
 
@@ -23,6 +24,9 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     if: github.event.inputs.confirm_destroy == 'DESTROY'
+    environment:
+      name: ${{ github.event.inputs.environment }}-cleanup
+      url: https://console.aws.amazon.com/
 
     steps:
       - name: Checkout code
@@ -35,17 +39,66 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Empty S3 buckets
+        run: |
+          echo "Emptying S3 buckets..."
+
+          # Find weather buckets
+          BUCKETS=$(aws s3 ls | grep weather-data-bucket | awk '{print $3}')
+
+          for BUCKET in $BUCKETS; do
+            echo "Emptying bucket: $BUCKET"
+            aws s3 rm "s3://$BUCKET" --recursive || true
+
+            # Remove all versions if versioning is enabled
+            aws s3api list-object-versions --bucket "$BUCKET" \
+              --query 'Versions[].{Key:Key,VersionId:VersionId}' \
+              --output text | while read key version; do
+                aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" || true
+              done
+
+            # Remove delete markers
+            aws s3api list-object-versions --bucket "$BUCKET" \
+              --query 'DeleteMarkers[].{Key:Key,VersionId:VersionId}' \
+              --output text | while read key version; do
+                aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" || true
+              done
+          done
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.12.2
+          terraform_wrapper: false
 
       - name: Terraform Init
         working-directory: ./infrastructure
         run: terraform init
 
+      - name: Terraform Plan Destroy
+        working-directory: ./infrastructure
+        run: |
+          terraform plan -destroy -out=destroy-plan \
+            -var="environment=${{ github.event.inputs.environment }}" \
+            -var="weather_api_key=dummy-key-for-destroy"
+        env:
+          TF_VAR_weather_api_key: dummy-key-for-destroy
+          TF_VAR_environment: ${{ github.event.inputs.environment }}
+
       - name: Terraform Destroy
         working-directory: ./infrastructure
-        run: terraform destroy -auto-approve
-        env:
-          TF_VAR_weather_api_key: ${{ secrets.WEATHER_API_KEY }}
+        run: terraform apply -auto-approve destroy-plan
+
+      - name: Cleanup Summary
+        run: |
+          echo "### 🧹 Cleanup Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All AWS resources have been successfully destroyed." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**⚠️ Important:** Make sure to:" >> $GITHUB_STEP_SUMMARY
+          echo "- Check AWS Console to confirm all resources are deleted" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify no unexpected charges in your AWS billing" >> $GITHUB_STEP_SUMMARY
+          echo "- Clean up any remaining CloudWatch logs if needed" >> $GITHUB_STEP_SUMMARY
