@@ -7,7 +7,15 @@ on:
         description: 'Type "DESTROY" to confirm resource deletion'
         required: true
         type: string
-
+    environment:
+      description: 'Environment to destroy'
+      required: true
+      default: 'dev'
+      type: choice
+      options:
+        - dev
+        - staging
+        - prod
 env:
   AWS_REGION: ap-southeast-2
 
@@ -30,7 +38,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
+          terraform_version: 1.12.2
 
       - name: Terraform Init
         working-directory: ./infrastructure
