@@ -374,7 +374,7 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
 
 # API Gateway invocation role for authorizer
 resource "aws_iam_role" "api_gateway_invocation_role" {
-  name = "${local.name_prefix}-api-gateway-invocation-role"
+  name = "${local.name_prefix}-apig-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
