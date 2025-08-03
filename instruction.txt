@@ -1,0 +1,404 @@
+# lambda/weather-fetcher/lambda_function.py
+import json
+import boto3
+import requests
+import os
+from datetime import datetime
+
+def lambda_handler(event, context):
+    """
+    Weather Fetcher Lambda - Fetches weather data and sends to SQS
+    """
+
+    # Initialize AWS clients
+    secrets_client = boto3.client('secretsmanager')
+    sqs_client = boto3.client('sqs')
+
+    try:
+        # Get API key from Secrets Manager
+        secret_name = os.environ['WEATHER_API_SECRET_NAME']
+        response = secrets_client.get_secret_value(SecretId=secret_name)
+        api_key = response['SecretString']
+
+        # Parse request body
+        body = json.loads(event.get('body', '{}'))
+        location = body.get('location', 'London')
+
+        # Fetch weather data (example with OpenWeatherMap API)
+        weather_api_url = f"https://api.openweathermap.org/data/2.5/weather"
+        params = {
+            'q': location,
+            'appid': api_key,
+            'units': 'metric'
+        }
+
+        weather_response = requests.get(weather_api_url, params=params)
+        weather_response.raise_for_status()
+        weather_data = weather_response.json()
+
+        # Prepare message for SQS
+        message = {
+            'location': location,
+            'weather_data': weather_data,
+            'timestamp': datetime.utcnow().isoformat(),
+            'request_id': context.aws_request_id
+        }
+
+        # Send message to SQS
+        sqs_queue_url = os.environ['SQS_QUEUE_URL']
+        sqs_response = sqs_client.send_message(
+            QueueUrl=sqs_queue_url,
+            MessageBody=json.dumps(message)
+        )
+
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'message': 'Weather data fetched successfully',
+                'location': location,
+                'messageId': sqs_response['MessageId']
+            })
+        }
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'error': 'Failed to fetch weather data',
+                'details': str(e)
+            })
+        }
+
+---
+
+# lambda/weather-fetcher/requirements.txt
+requests==2.31.0
+boto3==1.34.0
+
+---
+
+# lambda/weather-processor/lambda_function.py
+import json
+import boto3
+import os
+from datetime import datetime
+from decimal import Decimal
+
+def lambda_handler(event, context):
+    """
+    Weather Processor Lambda - Processes weather data from SQS and stores in S3
+    """
+
+    # Initialize AWS clients
+    s3_client = boto3.client('s3')
+    sns_client = boto3.client('sns')
+
+    s3_bucket = os.environ['S3_BUCKET_NAME']
+    sns_topic_arn = os.environ['SNS_TOPIC_ARN']
+
+    processed_messages = []
+
+    try:
+        # Process each SQS record
+        for record in event['Records']:
+            message_body = json.loads(record['body'])
+
+            location = message_body['location']
+            weather_data = message_body['weather_data']
+            timestamp = message_body['timestamp']
+            request_id = message_body['request_id']
+
+            # Process and transform weather data
+            processed_data = {
+                'location': location,
+                'temperature': weather_data['main']['temp'],
+                'humidity': weather_data['main']['humidity'],
+                'pressure': weather_data['main']['pressure'],
+                'description': weather_data['weather'][0]['description'],
+                'wind_speed': weather_data.get('wind', {}).get('speed', 0),
+                'timestamp': timestamp,
+                'processed_at': datetime.utcnow().isoformat(),
+                'request_id': request_id
+            }
+
+            # Generate S3 key with date partitioning
+            date_str = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).strftime('%Y/%m/%d')
+            s3_key = f"weather-data/{date_str}/{request_id}.json"
+
+            # Store processed data in S3
+            s3_client.put_object(
+                Bucket=s3_bucket,
+                Key=s3_key,
+                Body=json.dumps(processed_data, indent=2),
+                ContentType='application/json'
+            )
+
+            # Check for extreme weather conditions and send SNS notification
+            temperature = processed_data['temperature']
+            if temperature > 40 or temperature < -20:  # Extreme temperatures
+                notification_message = {
+                    'alert': 'Extreme Weather Detected',
+                    'location': location,
+                    'temperature': f"{temperature}°C",
+                    'description': processed_data['description'],
+                    'timestamp': timestamp
+                }
+
+                sns_client.publish(
+                    TopicArn=sns_topic_arn,
+                    Subject=f"Weather Alert for {location}",
+                    Message=json.dumps(notification_message, indent=2)
+                )
+
+            processed_messages.append({
+                'location': location,
+                's3_key': s3_key,
+                'temperature': temperature
+            })
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'message': f'Successfully processed {len(processed_messages)} weather records',
+                'processed_data': processed_messages
+            })
+        }
+
+    except Exception as e:
+        print(f"Error processing weather data: {str(e)}")
+
+        # Send error notification
+        try:
+            error_message = {
+                'error': 'Weather processing failed',
+                'details': str(e),
+                'timestamp': datetime.utcnow().isoformat()
+            }
+
+            sns_client.publish(
+                TopicArn=sns_topic_arn,
+                Subject="Weather Processing Error",
+                Message=json.dumps(error_message, indent=2)
+            )
+        except:
+            pass  # Don't fail if notification fails
+
+        raise e
+
+---
+
+# lambda/weather-processor/requirements.txt
+boto3==1.34.0
+
+---
+
+# lambda/authorizer/lambda_function.py
+import json
+import os
+
+def lambda_handler(event, context):
+    """
+    Custom API Gateway Authorizer Lambda
+    """
+
+    # Get the authorization token from the event
+    token = event.get('authorizationToken', '')
+    method_arn = event.get('methodArn', '')
+
+    # Simple token validation (replace with your actual auth logic)
+    # In production, you might validate JWT tokens, API keys, etc.
+    valid_tokens = [
+        'Bearer valid-api-key-123',
+        'Bearer another-valid-key-456'
+    ]
+
+    try:
+        # Validate the token
+        if token in valid_tokens:
+            effect = 'Allow'
+            principal_id = 'user123'  # Could extract from token
+        else:
+            effect = 'Deny'
+            principal_id = 'unauthorized'
+
+        # Build the policy document
+        policy_document = {
+            'Version': '2012-10-17',
+            'Statement': [
+                {
+                    'Action': 'execute-api:Invoke',
+                    'Effect': effect,
+                    'Resource': method_arn
+                }
+            ]
+        }
+
+        # Return the authorization response
+        auth_response = {
+            'principalId': principal_id,
+            'policyDocument': policy_document,
+            'context': {
+                'userId': principal_id,
+                'tokenValid': str(effect == 'Allow').lower()
+            }
+        }
+
+        return auth_response
+
+    except Exception as e:
+        print(f"Authorization error: {str(e)}")
+        # In case of error, deny access
+        return {
+            'principalId': 'unauthorized',
+            'policyDocument': {
+                'Version': '2012-10-17',
+                'Statement': [
+                    {
+                        'Action': 'execute-api:Invoke',
+                        'Effect': 'Deny',
+                        'Resource': method_arn
+                    }
+                ]
+            }
+        }
+
+---
+
+# lambda/authorizer/requirements.txt
+# No external dependencies for basic authorizer
+
+---
+
+# .github/workflows/cleanup.yml
+name: Cleanup AWS Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm resource deletion'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm_destroy == 'DESTROY'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Terraform Init
+      working-directory: ./infrastructure
+      run: terraform init
+
+    - name: Terraform Destroy
+      working-directory: ./infrastructure
+      run: terraform destroy -auto-approve
+      env:
+        TF_VAR_weather_api_key: ${{ secrets.WEATHER_API_KEY }}
+
+---
+
+# README.md - Setup Instructions
+
+## Weather API Infrastructure Deployment
+
+This repository contains GitHub Actions workflows to deploy a serverless weather processing system on AWS.
+
+### Architecture Components
+
+- **API Gateway**: Entry point for weather requests
+- **Lambda Authorizer**: Custom authorization for API requests
+- **Weather Fetcher Lambda**: Fetches weather data from external APIs
+- **SQS Queue**: Decouples weather fetching from processing
+- **Weather Processor Lambda**: Processes and stores weather data
+- **S3 Bucket**: Stores processed weather data
+- **SNS Topic**: Sends notifications for extreme weather
+- **Secrets Manager**: Securely stores weather API keys
+
+### Setup Instructions
+
+1. **Fork/Clone this repository**
+
+2. **Set up GitHub Secrets** (Repository Settings > Secrets and variables > Actions):
+   ```
+   AWS_ACCESS_KEY_ID: Your AWS access key
+   AWS_SECRET_ACCESS_KEY: Your AWS secret key
+   WEATHER_API_KEY: Your weather API key (e.g., OpenWeatherMap)
+   ```
+
+3. **Configure Terraform Backend** (Optional but recommended):
+   - Create an S3 bucket for Terraform state
+   - Update the backend configuration in `infrastructure/main.tf`
+
+4. **Create the directory structure**:
+   ```
+   project-root/
+   ├── .github/workflows/
+   ├── infrastructure/
+   ├── lambda/
+   │   ├── weather-fetcher/
+   │   ├── weather-processor/
+   │   └── authorizer/
+   └── README.md
+   ```
+
+5. **Deploy Infrastructure**:
+   - Push changes to the `main` branch
+   - GitHub Actions will automatically deploy the infrastructure
+   - Check the Actions tab for deployment status
+
+### Usage
+
+1. **Get API Gateway URL** from GitHub Actions output or AWS Console
+2. **Make authenticated requests**:
+   ```bash
+   curl -X POST \
+     -H "Authorization: Bearer valid-api-key-123" \
+     -H "Content-Type: application/json" \
+     -d '{"location": "London"}' \
+     https://your-api-gateway-url/prod/weather
+   ```
+
+### Monitoring
+
+- CloudWatch Logs for each Lambda function
+- SNS notifications for extreme weather conditions
+- S3 bucket contains processed weather data organized by date
+
+### Cleanup
+
+Run the cleanup workflow manually from the Actions tab to destroy all resources.
+
+### Security Notes
+
+- API keys are stored in AWS Secrets Manager
+- Lambda functions use least-privilege IAM roles
+- S3 bucket has server-side encryption enabled
+- Custom authorizer validates requests before processing
