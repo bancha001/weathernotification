@@ -143,11 +143,11 @@ jobs:
           FUNCTION_NAME=""
           case "${{ matrix.function }}" in
             "weather-fetcher")
-              FUNCTION_NAME="weather-fetcher"
+              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-fetcher"
               TEST_PAYLOAD='{"body": "{\"location\":\"London\"}"}'
               ;;
             "authorizer")
-              FUNCTION_NAME="weather-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-authorizer"
               TEST_PAYLOAD='{"authorizationToken":"Bearer valid-api-key-123","methodArn":"arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request"}'
               ;;
           esac
