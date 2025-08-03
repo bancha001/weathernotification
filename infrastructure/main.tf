@@ -10,6 +10,14 @@ terraform {
       version = "~> 3.1"
     }
   }
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "weather-app/terraform.tfstate"
+    region         = "ap-southeast-2"
+    encrypt        = true
+    dynamodb_table = "terraform-state-lock"
+  }
+
 
   # Uncomment and configure for remote state storage
   # backend "s3" {

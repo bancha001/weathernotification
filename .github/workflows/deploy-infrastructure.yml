@@ -45,7 +45,16 @@ jobs:
 
       - name: Terraform Init
         working-directory: ./infrastructure
-        run: terraform init -backend=false
+        run: |
+          terraform init \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=weather-app/${{ github.event.inputs.environment }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=$TF_LOCK_TABLE"
+        env:
+          TF_STATE_BUCKET: "your-terraform-state-bucket"
+          TF_LOCK_TABLE: "terraform-state-lock"
 
       - name: Terraform Validate
         working-directory: ./infrastructure
