@@ -221,7 +221,7 @@ resource "aws_s3_bucket_public_access_block" "weather_bucket_pab" {
 ###########################################
 
 resource "aws_secretsmanager_secret" "weather_api_key" {
-  name        = "${local.name_prefix}-api-key"
+  name        = "${local.name_prefix}-wapi-key"
   description = "Weather API key for external weather service"
 
   tags = merge(local.common_tags, {
