@@ -1,5 +1,10 @@
-import json
 import os
+import logging
+
+log_level_name = os.environ.get('LOG_LEVEL', 'INFO')
+log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(log_level)
 
 def lambda_handler(event, context):
     """
@@ -9,7 +14,7 @@ def lambda_handler(event, context):
     # Get the authorization token from the event
     token = event.get('headers', {}).get('Authorization')
     method_arn = event.get('methodArn', '')
-    print(f"Authorization header: {token}")
+    logger.info(f"Authorization header: {token}")
 
     # Simple token validation (replace with your actual auth logic)
     # In production, you might validate JWT tokens, API keys, etc.

@@ -3,7 +3,6 @@ import boto3
 import requests
 import os
 import logging
-from datetime import datetime
 
 log_level_name = os.environ.get('LOG_LEVEL', 'INFO')
 log_level = getattr(logging, log_level_name.upper(), logging.INFO)
@@ -21,7 +20,7 @@ def lambda_handler(event, context):
     sqs_client = boto3.client('sqs')
 
     try:
-        # Get API key from Secrets Manager
+        # Get the Weather API key from Secrets Manager
         secret_name = os.environ['WEATHER_API_SECRET_NAME']
         response = secrets_client.get_secret_value(SecretId=secret_name)
         api_key = response['SecretString']
@@ -36,7 +35,7 @@ def lambda_handler(event, context):
         phone_number = body.get('phone_number')
         notification_type = body.get('notification_type')
 
-        # Prepare request
+        # Prepare a weather request
         api_url = os.environ['WEATHER_API_URL']
         timeout = int(os.environ.get('TIMEOUT', '30'))
 
@@ -44,6 +43,7 @@ def lambda_handler(event, context):
 
         weatherResponse = requests.get(api_url, params=query_params, timeout=timeout)
         weatherResponse.raise_for_status()
+        # Populate response
         response = {
             'status_code': weatherResponse.status_code,
             'notification_type': notification_type,

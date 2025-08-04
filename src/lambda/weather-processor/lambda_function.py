@@ -2,13 +2,19 @@ import json
 import boto3
 import os
 from datetime import datetime
-from decimal import Decimal
+import logging
+
+log_level_name = os.environ.get('LOG_LEVEL', 'INFO')
+log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(log_level)
 
 def lambda_handler(event, context):
     """
-    Weather Processor Lambda - Processes weather data from SQS and stores in S3
+    Weather Processor Lambda - Processes weather data from SQS then stores in S3 and send notification to SNS
     """
 
+    logger.info(f"Received event: {json.dumps(event)}")
     # Initialize AWS clients
     s3_client = boto3.client('s3')
     sns_client = boto3.client('sns')
@@ -20,8 +26,8 @@ def lambda_handler(event, context):
 
     try:
         # Generate S3 key with date partitioning
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-        date_str = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).strftime('%Y/%m/%d')
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')
+        date_str = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).strftime('%Y/%m/%d-%S-%f')
         s3_key = f"weather-data/{date_str}.json"
 
         # Store processed data in S3
