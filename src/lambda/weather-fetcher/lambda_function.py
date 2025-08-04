@@ -32,6 +32,9 @@ def lambda_handler(event, context):
         country_code = body.get('country_code')
         city = f"{city_name},{country_code}"
         query_params = {'q': city, 'appid': api_key}
+        email = body.get('email')
+        phone_number = body.get('phone_number')
+        notification_type = body.get('notification_type')
 
         # Prepare request
         api_url = os.environ['WEATHER_API_URL']
@@ -43,12 +46,16 @@ def lambda_handler(event, context):
         weatherResponse.raise_for_status()
         response = {
             'status_code': weatherResponse.status_code,
+            'notification_type': notification_type,
+            'email': email,
+            'phone_number': phone_number,
             'data': weatherResponse.json(),
             'response_time_ms': int(weatherResponse.elapsed.total_seconds() * 1000)
         };
 
+        logger.info(f"Response: {response}")
         # Prepare SQS request
-        queue_url = os.environ['WEATHER_SQS_QUEUE_URL']
+        queue_url = os.environ['SQS_QUEUE_URL']
         sqs = boto3.client('sqs')
         sqs.send_message(
             QueueUrl = queue_url,
