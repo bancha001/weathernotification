@@ -20,24 +20,28 @@ provider "aws" {
 }
 
 # Variables
+
 variable "aws_region" {
   description = "AWS region"
   type        = string
   default     = "ap-southeast-2"
 }
 
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+  default     = "prod"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, staging, prod."
+  }
+}
+
 variable "bucket_name" {
   description = "Name of the S3 bucket for Terraform state"
   type        = string
-  default     = "weather-notification-terraform-state-bucket"
-}
-
-
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "dev"
+  default     = "weather-notification-terraform-state"
 }
 
 # Get current AWS account ID and caller identity
@@ -46,7 +50,7 @@ data "aws_region" "current" {}
 
 # S3 bucket for Terraform state
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = var.bucket_name
+  bucket = "${var.bucket_name}-${var.environment}-bucket"
 
   tags = {
     Name        = var.bucket_name
@@ -107,7 +111,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_state_lifecycle" {
 
 # IAM policy for Terraform backend access
 resource "aws_iam_policy" "terraform_backend_policy" {
-  name        = "TerraformBackendPolicy"
+  name        = "TerraformBackend-${var.environment}-Policy"
   description = "Policy for Terraform to access S3 backend and DynamoDB lock table"
 
   policy = jsonencode({
@@ -134,14 +138,14 @@ resource "aws_iam_policy" "terraform_backend_policy" {
   })
 
   tags = {
-    Name        = "TerraformBackendPolicy"
+    Name        = "TerraformBackend-${var.environment}-Policy"
     Environment = var.environment
   }
 }
 
 # Optional: IAM role for Terraform
 resource "aws_iam_role" "terraform_backend_role" {
-  name = "TerraformBackendRole"
+  name = "TerraformBackend-${var.environment}-Role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -157,7 +161,7 @@ resource "aws_iam_role" "terraform_backend_role" {
   })
 
   tags = {
-    Name        = "TerraformBackendRole"
+    Name        = "TerraformBackend-${var.environment}-Role"
     Environment = var.environment
   }
 }
