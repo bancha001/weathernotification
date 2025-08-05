@@ -11,22 +11,12 @@ terraform {
     }
   }
   backend "s3" {
-    bucket       = "weather-terraform-state-bucket"
+    bucket       = "weather-notification-terraform-state-${var.environment}-bucket"
     key          = "weather-app/terraform.tfstate"
     region       = "ap-southeast-2"
     encrypt      = true
     use_lockfile = true
   }
-
-
-  # Uncomment and configure for remote state storage
-  # backend "s3" {
-  #   bucket         = "your-terraform-state-bucket"
-  #   key            = "weather-app/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-state-lock"
-  # }
 }
 
 provider "aws" {
@@ -232,6 +222,7 @@ resource "aws_s3_bucket_public_access_block" "weather_bucket_pab" {
 resource "aws_secretsmanager_secret" "weather_api_key" {
   name        = "${local.name_prefix}-api-key"
   description = "Weather API key for external weather service"
+  recovery_window_in_days = 0
 
   tags = merge(local.common_tags, {
     Name = "Weather API Key"
