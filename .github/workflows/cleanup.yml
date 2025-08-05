@@ -66,6 +66,8 @@ jobs:
                 aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" || true
               done
           done
+      - name: Remove Secret Manager
+        run: aws secretsmanager delete-secret --secret-id serverless-weather-notification-system-${{ env.ENVIRONMENT }}-api-key --force-delete-without-recovery
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
