@@ -57,7 +57,7 @@ def lambda_handler(event, context):
         return auth_response
 
     except Exception as e:
-        print(f"Authorization error: {str(e)}")
+        logger.error(f"Authorization error: {str(e)}")
         # In case of error, deny access
         return {
             'principalId': 'unauthorized',

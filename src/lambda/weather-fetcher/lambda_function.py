@@ -26,14 +26,13 @@ def lambda_handler(event, context):
         api_key = response['SecretString']
 
         # Extract city name and country code from the input event and form query parameters
-        body = json.loads(event.get('body', '{}'))
-        city_name = body['city_name']
-        country_code = body['country_code']
+        city_name = event['city_name']
+        country_code = event['country_code']
         city = f"{city_name},{country_code}"
         query_params = {'q': city, 'appid': api_key}
-        email = body['email', '']
-        phone_number = body['phone_number', '']
-        notification_type = body['notification_type']
+        email = event['email', '']
+        phone_number = event['phone_number', '']
+        notification_type = event['notification_type']
 
         # Prepare a weather request
         api_url = os.environ['WEATHER_API_URL']
@@ -68,7 +67,7 @@ def lambda_handler(event, context):
         return response;
 
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.error(f"Error: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {
