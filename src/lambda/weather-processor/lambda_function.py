@@ -106,10 +106,11 @@ def handle_notification(weather_body, sns_topic_arn):
         sns_client.publish(
             TopicArn=sns_topic_arn,
             Subject=subject_text,
-            Message=f""""
+            Message=json.dumps({
+                'email': f""""
                     <h1>Weather Condition</h1>
                     <p>Current weather for {city_name} - {body_message}.</p>
-                    """,
+                    """}),
             MessageStructure='json',
             MessageAttributes={
                 'email': {
