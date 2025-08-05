@@ -11,7 +11,6 @@ terraform {
     }
   }
   backend "s3" {
-    bucket       = "weather-notification-terraform-state-${var.environment}-bucket"
     key          = "weather-app/terraform.tfstate"
     region       = "ap-southeast-2"
     encrypt      = true

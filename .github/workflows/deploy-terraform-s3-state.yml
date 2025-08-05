@@ -74,9 +74,9 @@ jobs:
       - name: Terraform Plan
         working-directory: ./s3setup
         run: |
-          terraform plan -out=tfplan -var="environment=dev"
+          terraform plan -out=tfplan -var="environment=${{ env.ENVIRONMENT }}"
         env:
-          TF_VAR_environment: dev
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
 
       - name: Terraform Apply
         working-directory: ./s3setup
