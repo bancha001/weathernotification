@@ -121,7 +121,7 @@ def handle_subscription( sns_topic_arn, sns_client, protocol, endpoint):
             is_email_subscribed = True
             break
 
-    if is_email_subscribed :
+    if not is_email_subscribed :
         sns_client.subscribe(
             TopicArn = sns_topic_arn,
             Protocol = protocol,
