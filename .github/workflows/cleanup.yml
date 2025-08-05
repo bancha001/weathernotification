@@ -27,6 +27,8 @@ jobs:
     environment:
       name: ${{ github.event.inputs.environment }}
       url: https://console.aws.amazon.com/
+    env:
+      ENVIRONMENT: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout code
@@ -73,7 +75,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: ./infrastructure
-        run: terraform init
+        run: terraform init -backend-config="bucket=weather-notification-terraform-state-${{ env.ENVIRONMENT }}-bucket"
 
       - name: Terraform Plan Destroy
         working-directory: ./infrastructure
