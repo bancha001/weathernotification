@@ -112,7 +112,7 @@ def handle_notification(weather_body, sns_topic_arn):
             TopicArn = sns_topic_arn,
             Subject = subject_text,
             Message = f"Weather Condition for {city_name} - {body_message}",
-            MessageStructure = 'json',
+            MessageStructure = 'text',
             MessageAttributes = {
                 'email': {
                     'DataType': 'String',
