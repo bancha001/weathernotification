@@ -69,8 +69,6 @@ def lambda_handler(event, context):
         except:
             pass  # Don't fail if notification fails
 
-        raise e
-
 # Send a notification based on a notification type
 def handle_notification(weather_body, sns_topic_arn):
     notification_type = weather_body['notification_type']
