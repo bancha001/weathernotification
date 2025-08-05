@@ -617,6 +617,10 @@ resource "aws_api_gateway_method_response" "weather_200" {
   http_method = aws_api_gateway_method.weather_post.http_method
   status_code = "200"
 
+  depends_on = [
+    aws_api_gateway_integration.weather_post_integration
+  ]
+
   response_models = {
     "application/json" = "Empty"
   }
@@ -628,6 +632,9 @@ resource "aws_api_gateway_integration_response" "weather_200" {
   http_method       = aws_api_gateway_method.weather_post.http_method
   status_code       = aws_api_gateway_method_response.weather_200.status_code
   selection_pattern = "" # empty means match 200
+  depends_on = [
+    aws_api_gateway_integration.weather_post_integration
+  ]
   response_templates = {
     "application/json" = ""
   }
