@@ -78,11 +78,7 @@ def handle_notification(weather_body, sns_topic_arn):
     if notification_type == 'sms' or notification_type == 'both':
         sns_client = boto3.client('sns')
         phone_number = weather_body['phone_number']
-        sns_client.subscribe(
-            TopicArn=sns_topic_arn,
-            Protocol='sms',
-            Endpoint=phone_number  # Make sure this is in E.164 format
-        )
+        handle_subcription(sns_topic_arn, sns_client, 'sms', phone_number)
 
         sns_client.publish(
             TopicArn=sns_topic_arn,
@@ -102,6 +98,7 @@ def handle_notification(weather_body, sns_topic_arn):
         sns_client = boto3.client('sns')
         email = weather_body['email']
 
+        handle_subcription(sns_topic_arn, sns_client, 'email', email)
         sns_client.subscribe(
             TopicArn = sns_topic_arn,
             Protocol = 'email',
@@ -119,6 +116,21 @@ def handle_notification(weather_body, sns_topic_arn):
                     'StringValue': email
                 }
             }
+        )
+
+def handle_subcription( sns_topic_arn, sns_client, protocol, endpoint):
+    response = sns_client.list_subscriptions_by_topic(TopicArn=sns_topic_arn)
+    is_email_subscribed = False
+    for subscription in response['Subscriptions']:
+        if subscription['Protocol'] == 'email' and subscription['Endpoint'] == 'email':
+            is_email_subscribed = True
+            break
+
+    if is_email_subscribed :
+        sns_client.subscribe(
+            TopicArn = sns_topic_arn,
+            Protocol=protocol,
+            Endpoint=endpoint
         )
 
 
