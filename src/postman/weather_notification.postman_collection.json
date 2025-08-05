@@ -1,0 +1,175 @@
+{
+	"info": {
+		"_postman_id": "210dd875-6ee7-4a0f-aa7d-572dd5436197",
+		"name": "WeatherNotification",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4414633"
+	},
+	"item": [
+		{
+			"name": "weather-without-notification",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "valid-JWT-001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"city_name\": \"Melbourne\",\n    \"country_code\": \"AU\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "weather-sms-notification",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "valid-JWT-001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"city_name\": \"Melbourne\",\n    \"country_code\": \"AU\",\n    \"notification_type\": \"sms\",\n    \"phone_number\": \"{{PHONE_NUMBER}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "weather-email-notification",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "valid-JWT-001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"city_name\": \"Melbourne\",\n    \"country_code\": \"AU\",\n    \"notification_type\": \"email\",\n    \"email\": \"{{EMAIL}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "weather-missing-city_name",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "valid-JWT-001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"country_code\": \"AU\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "weather-missing-country_code",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "valid-JWT-001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"city_name\": \"Melbourne\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
