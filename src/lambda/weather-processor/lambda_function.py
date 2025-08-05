@@ -115,13 +115,13 @@ def handle_notification(weather_body, sns_topic_arn):
 
 def handle_subscription( sns_topic_arn, sns_client, protocol, endpoint):
     response = sns_client.list_subscriptions_by_topic(TopicArn=sns_topic_arn)
-    is_email_subscribed = False
+    is_subscribed = False
     for subscription in response['Subscriptions']:
-        if subscription['Protocol'] == 'email' and subscription['Endpoint'] == 'email':
-            is_email_subscribed = True
+        if subscription['Protocol'] == protocol and subscription['Endpoint'] == endpoint :
+            is_subscribed = True
             break
 
-    if not is_email_subscribed :
+    if not is_subscribed :
         sns_client.subscribe(
             TopicArn = sns_topic_arn,
             Protocol = protocol,
