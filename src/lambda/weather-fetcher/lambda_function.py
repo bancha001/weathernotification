@@ -30,9 +30,9 @@ def lambda_handler(event, context):
         country_code = event['country_code']
         city = f"{city_name},{country_code}"
         query_params = {'q': city, 'appid': api_key}
-        email = event['email']
-        phone_number = event['phone_number']
-        notification_type = event['notification_type']
+        email = event.get('email','')
+        phone_number = event.get('phone_number','')
+        notification_type = event.get('notification_type','')
 
         # Prepare a weather request
         api_url = os.environ['WEATHER_API_URL']
