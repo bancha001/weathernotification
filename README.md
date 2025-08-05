@@ -3,6 +3,7 @@
 This repository contains GitHub Actions workflows to deploy a serverless weather processing system on AWS.
 
 ### Architecture Components
+![Alt Text](architectural-diagram.png)
 
 - **API Gateway**: Entry point for weather requests
 - **Lambda Authorizer**: Custom authorization for API requests
