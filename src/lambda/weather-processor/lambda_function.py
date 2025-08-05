@@ -101,6 +101,7 @@ def handle_notification(weather_body, sns_topic_arn):
             }
         )
     if notification_type == 'email' or notification_type == 'both':
+        sns_client = boto3.client('sns')
         email = weather_body['email']
         sns_client.publish(
             TopicArn=sns_topic_arn,
