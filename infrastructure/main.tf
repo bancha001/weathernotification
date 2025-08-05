@@ -220,8 +220,8 @@ resource "aws_s3_bucket_public_access_block" "weather_bucket_pab" {
 ###########################################
 
 resource "aws_secretsmanager_secret" "weather_api_key" {
-  name        = "${local.name_prefix}-api-key"
-  description = "Weather API key for external weather service"
+  name                    = "${local.name_prefix}-api-key"
+  description             = "Weather API key for external weather service"
   recovery_window_in_days = 0
 
   tags = merge(local.common_tags, {
