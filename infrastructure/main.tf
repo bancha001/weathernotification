@@ -370,7 +370,11 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
       {
         Effect = "Allow"
         Action = [
-          "sns:Publish"
+          "sns:Publish",
+          "sns:Subscribe",
+          "sns:Unsubscribe",
+          "sns:ListSubscriptionsByTopic",
+          "sns:GetTopicAttributes"
         ]
         Resource = aws_sns_topic.weather_notifications.arn
       },
