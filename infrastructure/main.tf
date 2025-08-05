@@ -611,7 +611,12 @@ resource "aws_api_gateway_integration" "weather_post_integration" {
   resource_id             = aws_api_gateway_resource.weather_resource.id
   http_method             = aws_api_gateway_method.weather_post.http_method
   integration_http_method = "POST"
-  type                    = "AWS_PROXY"
+  type                    = "AWS"
+  content_handling        = "CONVERT_TO_TEXT"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  request_parameters      = {}
+  request_templates       = {}
+  cache_key_parameters    = []
   uri                     = aws_lambda_function.weather_functions["weather_fetcher"].invoke_arn
 }
 
