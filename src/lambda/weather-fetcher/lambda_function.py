@@ -30,8 +30,8 @@ def lambda_handler(event, context):
         country_code = event['country_code']
         city = f"{city_name},{country_code}"
         query_params = {'q': city, 'appid': api_key}
-        email = event['email', '']
-        phone_number = event['phone_number', '']
+        email = event['email']
+        phone_number = event['phone_number']
         notification_type = event['notification_type']
 
         # Prepare a weather request
