@@ -27,13 +27,13 @@ def lambda_handler(event, context):
 
         # Extract city name and country code from the input event and form query parameters
         body = json.loads(event.get('body', '{}'))
-        city_name = body.get('city_name')
-        country_code = body.get('country_code')
+        city_name = body['city_name']
+        country_code = body['country_code']
         city = f"{city_name},{country_code}"
         query_params = {'q': city, 'appid': api_key}
-        email = body.get('email', '')
-        phone_number = body.get('phone_number', '')
-        notification_type = body.get('notification_type')
+        email = body['email', '']
+        phone_number = body['phone_number', '']
+        notification_type = body['notification_type']
 
         # Prepare a weather request
         api_url = os.environ['WEATHER_API_URL']
