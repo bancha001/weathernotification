@@ -99,11 +99,6 @@ def handle_notification(weather_body, sns_topic_arn):
         email = weather_body['email']
 
         handle_subcription(sns_topic_arn, sns_client, 'email', email)
-        sns_client.subscribe(
-            TopicArn = sns_topic_arn,
-            Protocol = 'email',
-            Endpoint = email
-        )
 
         sns_client.publish(
             TopicArn = sns_topic_arn,
