@@ -27,21 +27,23 @@ def lambda_handler(event, context):
     try:
         # Generate S3 key with date partitioning
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')
-        date_str = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).strftime('%Y/%m/%d-%S-%f')
+        date_str = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).strftime('%Y/%m/%d-%H-%M-%S-%f')
         s3_key = f"weather-data/{date_str}.json"
+
+        # Extract data from input event
+        weather_body_string = event['Records'][0]['body']
+        weather_body_json = json.loads(weather_body_string)
+        weather_body_data = weather_body_json['data']
+        formatted_data = json.dumps(weather_body_data, indent=2)
 
         # Store processed data in S3
         s3_client.put_object(
             Bucket=s3_bucket,
             Key=s3_key,
-            Body=json.dumps(event, indent=2),
+            Body=formatted_data,
             ContentType='application/json'
         )
-        sns_client.publish(
-            TopicArn=sns_topic_arn,
-            Subject='Weather Alert',
-            Message=json.dumps(event, indent=2)
-        )
+        handle_notification(weather_body_json, sns_topic_arn)
 
         return {
             'statusCode': 200,
@@ -68,3 +70,47 @@ def lambda_handler(event, context):
             pass  # Don't fail if notification fails
 
         raise e
+
+# Send a notification based on a notification type
+def handle_notification(weather_body, sns_topic_arn):
+    notification_type = weather_body['notification_type']
+    body_message =  weather_body['data']['weather'][0]['description']
+    city_name = weather_body['city_name']
+    subject_text = f"Weather condition for {city_name}"
+    if notification_type == 'sms' or notification_type == 'both':
+        sns_client = boto3.client('sns')
+        phone_number = weather_body['phone_number']
+        sns_client.publish(
+            PhoneNumber=phone_number,
+            Message=f"{subject_text} - {body_message}",
+            MessageAttributes={
+                'AWS.SNS.SMS.SenderID': {
+                    'DataType': 'String',
+                    'StringValue': 'WEATHER'
+                },
+                'AWS.SNS.SMS.SMSType': {
+                    'DataType': 'String',
+                    'StringValue': 'Transactional'
+                }
+            }
+        )
+
+    if notification_type == 'email' or notification_type == 'both':
+        email = weather_body['email']
+        sns_client.publish(
+            TopicArn=sns_topic_arn,
+            Subject=subject_text,
+            Message=f""""
+                    <h1>Weather Condition</h1>
+                    <p>Current weather for {city_name} - {body_message}.</p>
+                    """,
+            MessageStructure='json',
+            MessageAttributes={
+                'email': {
+                    'DataType': 'String',
+                    'StringValue': email
+                }
+            }
+        )
+
+

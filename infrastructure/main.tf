@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.12"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.7"
     }
     random = {
       source  = "hashicorp/random"
@@ -11,7 +11,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket       = "your-terraform-state-bucket"
+    bucket       = "weather-terraform-state-bucket"
     key          = "weather-app/terraform.tfstate"
     region       = "ap-southeast-2"
     encrypt      = true
@@ -152,7 +152,7 @@ locals {
 ###########################################
 
 resource "aws_s3_bucket" "weather_bucket" {
-  bucket = "${local.name_prefix}-data-${random_string.suffix.result}"
+  bucket = "${local.name_prefix}-data"
 
   tags = merge(local.common_tags, {
     Name = "Weather Data Bucket"
@@ -602,62 +602,13 @@ resource "aws_api_gateway_method" "weather_post" {
   }
 }
 
-# Enable CORS
-resource "aws_api_gateway_method" "weather_options" {
-  rest_api_id   = aws_api_gateway_rest_api.weather_api.id
-  resource_id   = aws_api_gateway_resource.weather_resource.id
-  http_method   = "OPTIONS"
-  authorization = "NONE"
-}
-
 resource "aws_api_gateway_integration" "weather_post_integration" {
-  rest_api_id = aws_api_gateway_rest_api.weather_api.id
-  resource_id = aws_api_gateway_resource.weather_resource.id
-  http_method = aws_api_gateway_method.weather_post.http_method
-
+  rest_api_id             = aws_api_gateway_rest_api.weather_api.id
+  resource_id             = aws_api_gateway_resource.weather_resource.id
+  http_method             = aws_api_gateway_method.weather_post.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.weather_functions["weather_fetcher"].invoke_arn
-}
-
-# CORS integration
-resource "aws_api_gateway_integration" "weather_options_integration" {
-  rest_api_id = aws_api_gateway_rest_api.weather_api.id
-  resource_id = aws_api_gateway_resource.weather_resource.id
-  http_method = aws_api_gateway_method.weather_options.http_method
-  type        = "MOCK"
-
-  request_templates = {
-    "application/json" = jsonencode({
-      statusCode = 200
-    })
-  }
-}
-
-resource "aws_api_gateway_method_response" "weather_options_response" {
-  rest_api_id = aws_api_gateway_rest_api.weather_api.id
-  resource_id = aws_api_gateway_resource.weather_resource.id
-  http_method = aws_api_gateway_method.weather_options.http_method
-  status_code = "200"
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Origin"  = true
-  }
-}
-
-resource "aws_api_gateway_integration_response" "weather_options_integration_response" {
-  rest_api_id = aws_api_gateway_rest_api.weather_api.id
-  resource_id = aws_api_gateway_resource.weather_resource.id
-  http_method = aws_api_gateway_method.weather_options.http_method
-  status_code = aws_api_gateway_method_response.weather_options_response.status_code
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
 }
 
 ###########################################
@@ -687,9 +638,6 @@ resource "aws_lambda_permission" "api_gateway_authorizer" {
 resource "aws_api_gateway_deployment" "weather_deployment" {
   depends_on = [
     aws_api_gateway_method.weather_post,
-    aws_api_gateway_method.weather_options,
-    aws_api_gateway_integration.weather_post_integration,
-    aws_api_gateway_integration.weather_options_integration,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.weather_api.id
@@ -698,9 +646,6 @@ resource "aws_api_gateway_deployment" "weather_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.weather_resource.id,
       aws_api_gateway_method.weather_post.id,
-      aws_api_gateway_method.weather_options.id,
-      aws_api_gateway_integration.weather_post_integration.id,
-      aws_api_gateway_integration.weather_options_integration.id,
     ]))
   }
 

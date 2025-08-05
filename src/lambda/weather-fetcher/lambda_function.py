@@ -39,7 +39,7 @@ def lambda_handler(event, context):
         api_url = os.environ['WEATHER_API_URL']
         timeout = int(os.environ.get('TIMEOUT', '30'))
 
-        logger.info(f"Making GET request to: {api_url}")
+        logger.info(f"Making GET request to: {api_url} for {city}")
 
         weatherResponse = requests.get(api_url, params=query_params, timeout=timeout)
         weatherResponse.raise_for_status()
@@ -49,9 +49,10 @@ def lambda_handler(event, context):
             'notification_type': notification_type,
             'email': email,
             'phone_number': phone_number,
+            'city_name': city_name,
             'data': weatherResponse.json(),
             'response_time_ms': int(weatherResponse.elapsed.total_seconds() * 1000)
-        };
+        }
 
         logger.info(f"Response: {response}")
         # Prepare SQS request
