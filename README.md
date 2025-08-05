@@ -48,16 +48,13 @@ This repository contains GitHub Actions workflows to deploy a serverless weather
 
 ### Usage
 
-1. **Get API Gateway URL** from GitHub Actions output or AWS Console
-2. **Make authenticated requests**:
-   ```bash
-   curl -X POST \
-     -H "Authorization: Bearer valid-api-key-123" \
-     -H "Content-Type: application/json" \
-     -d '{"location": "London"}' \
-     https://your-api-gateway-url/prod/weather
-   ```
-
+1. **Get API Gateway URL** from AWS Console
+2. **Import Postman Collection under src/postman**:
+   - Create a new environment in WEATHER_INTEGRATION_DEVELOPMENT
+   - Add API_GATEWAY_URL variable and supply value from step 1
+   - Add EMAIL variable by using your test email address
+   - Add PHONE_NUMBER variable by using your test phone number
+3. **Run the Postman requests and verify the result**:
 ### Monitoring
 
 - CloudWatch Logs for each Lambda function
