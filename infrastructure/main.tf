@@ -647,6 +647,7 @@ resource "aws_lambda_permission" "api_gateway_authorizer" {
 resource "aws_api_gateway_deployment" "weather_deployment" {
   depends_on = [
     aws_api_gateway_method.weather_post,
+    aws_api_gateway_integration.weather_post_integration
   ]
 
   rest_api_id = aws_api_gateway_rest_api.weather_api.id
@@ -655,6 +656,7 @@ resource "aws_api_gateway_deployment" "weather_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.weather_resource.id,
       aws_api_gateway_method.weather_post.id,
+      aws_api_gateway_integration.weather_post_integration.id
     ]))
   }
 
