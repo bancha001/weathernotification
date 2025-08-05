@@ -101,16 +101,19 @@ def handle_notification(weather_body, sns_topic_arn):
     if notification_type == 'email' or notification_type == 'both':
         sns_client = boto3.client('sns')
         email = weather_body['email']
+
+        sns_client.subscribe(
+            TopicArn = sns_topic_arn,
+            Protocol = 'email',
+            Endpoint = email
+        )
+
         sns_client.publish(
-            TopicArn=sns_topic_arn,
-            Subject=subject_text,
-            Message=json.dumps({
-                'email': f""""
-                    <h1>Weather Condition</h1>
-                    <p>Current weather for {city_name} - {body_message}.</p>
-                    """}),
-            MessageStructure='json',
-            MessageAttributes={
+            TopicArn = sns_topic_arn,
+            Subject = subject_text,
+            Message = f"Weather Condition for {city_name} - {body_message}",
+            MessageStructure = 'json',
+            MessageAttributes = {
                 'email': {
                     'DataType': 'String',
                     'StringValue': email
