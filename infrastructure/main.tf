@@ -620,6 +620,30 @@ resource "aws_api_gateway_integration" "weather_post_integration" {
   uri                     = aws_lambda_function.weather_functions["weather_fetcher"].invoke_arn
 }
 
+resource "aws_api_gateway_method_response" "weather_200" {
+  rest_api_id = aws_api_gateway_rest_api.weather_api.id
+  resource_id = aws_api_gateway_resource.weather_resource.id
+  http_method = aws_api_gateway_method.weather_post.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "weather_200" {
+  rest_api_id = aws_api_gateway_rest_api.weather_api.id
+  resource_id = aws_api_gateway_resource.weather_resource.id
+  http_method = aws_api_gateway_method.weather_post.http_method
+  status_code = aws_api_gateway_method_response.weather_200.status_code
+  selection_pattern = "" # empty means match 200
+  response_templates = {
+    "application/json" = ""
+  }
+}
+
+
+
 ###########################################
 # LAMBDA PERMISSIONS
 ###########################################
@@ -647,7 +671,9 @@ resource "aws_lambda_permission" "api_gateway_authorizer" {
 resource "aws_api_gateway_deployment" "weather_deployment" {
   depends_on = [
     aws_api_gateway_method.weather_post,
-    aws_api_gateway_integration.weather_post_integration
+    aws_api_gateway_integration.weather_post_integration,
+    aws_api_gateway_integration_response.weather_200,
+    aws_api_gateway_method_response.weather_200,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.weather_api.id
@@ -656,7 +682,9 @@ resource "aws_api_gateway_deployment" "weather_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.weather_resource.id,
       aws_api_gateway_method.weather_post.id,
-      aws_api_gateway_integration.weather_post_integration.id
+      aws_api_gateway_integration.weather_post_integration.id,
+      aws_api_gateway_integration_response.weather_200,
+      aws_api_gateway_method_response.weather_200,
     ]))
   }
 
