@@ -12,6 +12,15 @@ on:
         description: 'Functions to deploy (comma-separated: weather-fetcher,weather-processor,authorizer or all)'
         required: true
         default: 'all'
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 env:
   AWS_REGION: ap-southeast-2
@@ -20,7 +29,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ github.event.inputs.environment }}
+    env:
+      ENVIRONMENT: ${{ github.event.inputs.environment }}
     strategy:
       matrix:
         function: [weather-fetcher, weather-processor, authorizer]
@@ -99,13 +110,13 @@ jobs:
           FUNCTION_NAME=""
           case "${{ matrix.function }}" in
             "weather-fetcher")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-fetcher"
+              FUNCTION_NAME="serverless-weather-notification-system-${{ env.ENVIRONMENT }}-weather-fetcher"
               ;;
             "weather-processor")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-processor"
+              FUNCTION_NAME="serverless-weather-notification-system-${{ env.ENVIRONMENT }}-weather-processor"
               ;;
             "authorizer")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-${{ env.ENVIRONMENT }}-authorizer"
               ;;
           esac
 
@@ -123,13 +134,13 @@ jobs:
           FUNCTION_NAME=""
           case "${{ matrix.function }}" in
             "weather-fetcher")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-fetcher"
+              FUNCTION_NAME="serverless-weather-notification-system-${{ env.ENVIRONMENT }}-weather-fetcher"
               ;;
             "weather-processor")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-weather-processor"
+              FUNCTION_NAME="serverless-weather-notification-system-${{ env.ENVIRONMENT }}-weather-processor"
               ;;
             "authorizer")
-              FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
+              FUNCTION_NAME="serverless-weather-notification-system-${{ env.ENVIRONMENT }}-authorizer"
               ;;
           esac
 
@@ -144,11 +155,11 @@ jobs:
           case "${{ matrix.function }}" in
             "weather-fetcher")
               FUNCTION_NAME="serverless-weather-notification-system-dev-weather-fetcher"
-              TEST_PAYLOAD='{"body": "{\"location\":\"London\"}"}'
+              TEST_PAYLOAD='{"body": "{\"city_name\":\"Melbourne\"}", \"country_code\":\"AU\"}"}'          
               ;;
             "authorizer")
               FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
-              TEST_PAYLOAD='{"authorizationToken":"Bearer valid-api-key-123","methodArn":"arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request"}'
+              TEST_PAYLOAD='{"authorizationToken":"Bearer valid-api-key-123","methodArn":"arn:aws:execute-api:ap-southest-2:123456789012:abcdef123/test/GET/request"}'
               ;;
           esac
 
