@@ -153,6 +153,7 @@ locals {
 
 resource "aws_s3_bucket" "weather_bucket" {
   bucket = "${local.name_prefix}-data"
+  force_destroy = true
 
   tags = merge(local.common_tags, {
     Name = "Weather Data Bucket"
