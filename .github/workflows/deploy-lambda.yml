@@ -156,7 +156,7 @@ jobs:
           case "${{ matrix.function }}" in
             "weather-fetcher")
               FUNCTION_NAME="serverless-weather-notification-system-dev-weather-fetcher"
-              TEST_PAYLOAD='{"body": "{\"city_name\":\"Melbourne\", \"country_code\":\"AU\"}"}'          
+              TEST_PAYLOAD='{\"city_name\":\"Melbourne\", \"country_code\":\"AU\"}'          
               ;;
             "authorizer")
               FUNCTION_NAME="serverless-weather-notification-system-dev-authorizer"
