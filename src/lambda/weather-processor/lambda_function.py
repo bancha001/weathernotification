@@ -80,8 +80,14 @@ def handle_notification(weather_body, sns_topic_arn):
     if notification_type == 'sms' or notification_type == 'both':
         sns_client = boto3.client('sns')
         phone_number = weather_body['phone_number']
+        sns_client.subscribe(
+            TopicArn=sns_topic_arn,
+            Protocol='sms',
+            Endpoint=phone_number  # Make sure this is in E.164 format
+        )
+
         sns_client.publish(
-            PhoneNumber=phone_number,
+            TopicArn=sns_topic_arn,
             Message=f"{subject_text} - {body_message}",
             MessageAttributes={
                 'AWS.SNS.SMS.SenderID': {
@@ -94,7 +100,6 @@ def handle_notification(weather_body, sns_topic_arn):
                 }
             }
         )
-
     if notification_type == 'email' or notification_type == 'both':
         email = weather_body['email']
         sns_client.publish(
@@ -112,5 +117,6 @@ def handle_notification(weather_body, sns_topic_arn):
                 }
             }
         )
+
 
 
