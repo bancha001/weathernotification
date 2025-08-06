@@ -105,7 +105,8 @@ This architecture illustrates a serverless weather notification system deployed 
 
 ### Assumptions and limitations
 
-1. To allow notification configurable, the request structure is as below
+1. Identity Provider integration is out of scope. With the current implementation, the valid tokens are ***valid-JWT-001'*** and ***valid-JWT-002'***,
+2. To allow notification configurable, the request structure is as below
 
    | Element Name | Data type | Cardinality | Description                                        |
    |----------|----------|-------------|----------------------------------------------------|
