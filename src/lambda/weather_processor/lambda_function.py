@@ -51,7 +51,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(f"Error processing weather data: {str(e)}")
+        logger.error(f"Error processing weather data: {str(e)}")
 
         # Send error notification
         try:
@@ -68,6 +68,7 @@ def lambda_handler(event, context):
             )
         except:
             pass  # Don't fail if notification fails
+
 
 # Send a notification based on a notification type
 def handle_notification(weather_body, sns_topic_arn):
