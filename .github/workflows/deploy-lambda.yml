@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       functions:
-        description: 'Functions to deploy (comma-separated: weather-fetcher,weather-processor,authorizer or all)'
+        description: 'Functions to deploy (comma-separated: weather_fetcher,weather_processor,authorizer or all)'
         required: true
         default: 'all'
       environment:
@@ -150,7 +150,7 @@ jobs:
           echo "Function $FUNCTION_NAME updated successfully!"
 
       - name: Test function
-        if: steps.should_deploy.outputs.deploy == 'true' && matrix.function != 'weather-processor'
+        if: steps.should_deploy.outputs.deploy == 'true' && matrix.function != 'weather_processor'
         run: |
           FUNCTION_NAME=""
           case "${{ matrix.function }}" in
