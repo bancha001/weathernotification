@@ -87,7 +87,7 @@ This architecture illustrates a serverless weather notification system deployed 
    │── architectural-diagram.png 
    └── README.md
    ```
-   - **GitHub Action workflows are located in the .github/workflows folder**
+   - **GitHub Actions workflows are located in the .github/workflows folder**
 
    - **Terraform for the main infrastructure is located in the infrastructure folder**
 
