@@ -106,6 +106,39 @@
 			"response": []
 		},
 		{
+			"name": "weather-both-notification",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "valid-JWT-001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"city_name\": \"Melbourne\",\n    \"country_code\": \"AU\",\n    \"notification_type\": \"email\",\n    \"email\": \"{{EMAIL}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "weather-missing-city_name",
 			"request": {
 				"auth": {
