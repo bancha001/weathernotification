@@ -74,11 +74,11 @@ jobs:
       - name: Terraform Plan
         working-directory: ./infrastructure
         run: |
-          terraform plan -out=tfplan -var="environment=dev" \
+          terraform plan -out=tfplan -var="environment=${{ env.ENVIRONMENT }}" \
             -var="weather_api_key=${{ secrets.WEATHER_API_KEY }}"
         env:
           TF_VAR_weather_api_key: ${{ secrets.WEATHER_API_KEY }}
-          TF_VAR_environment: dev
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
 
       - name: Terraform Apply
         working-directory: ./infrastructure
