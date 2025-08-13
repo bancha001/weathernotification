@@ -294,7 +294,7 @@ resource "aws_sns_topic" "weather_notifications" {
 
 # Lambda execution role
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "${local.name_prefix}-lambda-execution-role"
+  name = "${local.name_prefix}-lambda-exec-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
