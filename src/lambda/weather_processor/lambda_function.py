@@ -58,7 +58,7 @@ def lambda_handler(event, context):
             error_message = {
                 'error': 'Weather processing failed',
                 'details': str(e),
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now().isoformat()
             }
 
             sns_client.publish(
@@ -68,7 +68,7 @@ def lambda_handler(event, context):
             )
         except:
             pass  # Don't fail if notification fails
-
+        raise
 
 # Send a notification based on a notification type
 def handle_notification(weather_body, sns_topic_arn):

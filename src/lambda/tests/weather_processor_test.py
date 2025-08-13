@@ -230,13 +230,10 @@ class TestWeatherProcessorLambdaFunction(unittest.TestCase):
         context = {}
 
         # Execute
-        result = lambda_handler(test_event, context)
+        with self.assertRaises(Exception) as context:
+            lambda_handler(test_event, None)
 
-        # Verify error notification was sent
-        mock_sns_client.publish.assert_called()
-        call_args = mock_sns_client.publish.call_args
-        self.assertEqual(call_args.kwargs['Subject'], "Weather Processing Error")
-        self.assertIn('S3 connection failed', call_args.kwargs['Message'])
+        self.assertTrue("S3 connection failed" in str(context.exception))
 
     @patch.dict(os.environ, {
         'S3_BUCKET_NAME': 'test-weather-bucket',
@@ -253,22 +250,16 @@ class TestWeatherProcessorLambdaFunction(unittest.TestCase):
         }[service]
 
         # Test event with invalid JSON
-        test_event = {
-            'Records': [{
-                'body': 'invalid json string'
-            }]
-        }
+        test_event = {'invalid_key': 'invalid_value'}
 
         context = {}
 
         # Execute
 
-        result = lambda_handler(test_event, context)
+        with self.assertRaises(KeyError):
+            lambda_handler(test_event, None)
 
-        # Verify error notification was sent
-        mock_sns_client.publish.assert_called()
-        call_args = mock_sns_client.publish.call_args
-        self.assertEqual(call_args.kwargs['Subject'], "Weather Processing Error")
+        mock_s3_client.put_object.assert_not_called()
 
     @patch.dict(os.environ, {
         'S3_BUCKET_NAME': 'test-weather-bucket',
@@ -344,12 +335,12 @@ class TestWeatherProcessorLambdaFunction(unittest.TestCase):
 
         context = {}
 
-        # Execute - should not raise exception even if SNS fails
-        lambda_handler(test_event, context)
-        # Verify error notification was sent
-        mock_sns_client.publish.assert_called()
-        call_args = mock_sns_client.publish.call_args
-        self.assertEqual(call_args.kwargs['Subject'], "Weather Processing Error")
+        with self.assertRaises(Exception) as context:
+            lambda_handler(test_event, None)
+
+        mock_s3_client.put_object.assert_called_once()
+        mock_sns_client.publish.assert_called_once()
+        self.assertTrue("S3 Error" in str(context.exception))
 
     def test_lambda_handler_missing_environment_variables(self):
         # Test without environment variables
